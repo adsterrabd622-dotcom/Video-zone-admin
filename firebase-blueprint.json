@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "Video": {
+      "title": "Video",
+      "description": "A video managed by the admin panel.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "duration": { "type": "string" },
+        "requiresUnlock": { "type": "boolean" },
+        "targetLink": { "type": "string" },
+        "requiredAdsCount": { "type": "number" },
+        "adminName": { "type": "string" },
+        "adminProfilePic": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "views": { "type": "number" },
+        "likes": { "type": "number" }
+      },
+      "required": ["title", "thumbnail", "videoUrl", "duration", "requiresUnlock", "adminName", "adminProfilePic", "createdAt", "views", "likes"]
+    },
+    "AdsSetting": {
+      "title": "AdsSetting",
+      "description": "Global settings for advertisements.",
+      "type": "object",
+      "properties": {
+        "popunder": { "type": "string" },
+        "socialBar": { "type": "string" },
+        "banner728x90": { "type": "string" },
+        "globalAdLink": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/videos/{videoId}": {
+      "schema": { "$ref": "#/entities/Video" },
+      "description": "A collection of videos."
+    },
+    "/adSettings/global_settings": {
+      "schema": { "$ref": "#/entities/AdsSetting" },
+      "description": "A single document containing global ad settings."
+    }
+  }
+}

@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidVideo(data) {
+      return data.keys().hasAll(['title', 'thumbnail', 'videoUrl', 'duration', 'requiresUnlock', 'adminName', 'adminProfilePic', 'createdAt', 'views', 'likes'])
+        && data.title is string && data.title.size() <= 200
+        && data.thumbnail is string && data.thumbnail.size() <= 1000
+        && data.videoUrl is string && data.videoUrl.size() <= 1000
+        && data.duration is string && data.duration.size() <= 50
+        && data.adminName is string && data.adminName.size() <= 100
+        && data.adminProfilePic is string && data.adminProfilePic.size() <= 1000
+        && data.requiresUnlock is bool
+        && data.createdAt is number
+        && data.views is number
+        && data.likes is number
+        && (!data.keys().hasAny(['targetLink']) || (data.targetLink is string && data.targetLink.size() <= 1000))
+        && (!data.keys().hasAny(['requiredAdsCount']) || (data.requiredAdsCount is number));
+    }
+
+    function isValidAdsSetting(data) {
+      return (!data.keys().hasAny(['popunder']) || (data.popunder is string && data.popunder.size() <= 10000))
+        && (!data.keys().hasAny(['socialBar']) || (data.socialBar is string && data.socialBar.size() <= 10000))
+        && (!data.keys().hasAny(['banner728x90']) || (data.banner728x90 is string && data.banner728x90.size() <= 10000))
+        && (!data.keys().hasAny(['globalAdLink']) || (data.globalAdLink is string && data.globalAdLink.size() <= 1000));
+    }
+
+    match /videos/{videoId} {
+      allow read: if isValidId(videoId);
+      allow create: if isValidId(videoId) 
+        && isValidVideo(incoming())
+        && incoming().createdAt == request.time.toMillis();
+      allow update: if isValidId(videoId)
+        && isValidVideo(incoming());
+      allow delete: if isValidId(videoId);
+    }
+
+    match /adSettings/{settingId} {
+      allow read: if settingId == 'global_settings';
+      allow create, update: if settingId == 'global_settings'
+        && isValidAdsSetting(incoming());
+    }
+  }
+}
