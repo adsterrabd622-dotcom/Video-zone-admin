@@ -15,6 +15,7 @@ interface VideoData {
   requiresUnlock: boolean;
   targetLink?: string;
   requiredAdsCount?: number;
+  adLinks?: string[];
   createdAt: number;
   views: number;
   likes: number;
@@ -70,7 +71,10 @@ export default function VideoLibrary() {
 
   const handleEditClick = (video: VideoData) => {
     const matchingProfile = adminProfiles.find(p => p.name === video.adminName && p.profilePic === video.adminProfilePic);
-    setEditingVideo({ ...video, selectedProfileId: matchingProfile ? matchingProfile.id : (adminProfiles[0]?.id || '') });
+    setEditingVideo({ 
+      ...video, 
+      selectedProfileId: matchingProfile ? matchingProfile.id : (adminProfiles[0]?.id || '')
+    });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -96,6 +100,7 @@ export default function VideoLibrary() {
       if (!payload.requiresUnlock) {
         payload.targetLink = deleteField();
         payload.requiredAdsCount = deleteField();
+        payload.adLinks = deleteField();
       } else {
         payload.requiredAdsCount = Number(payload.requiredAdsCount) || 3;
       }
@@ -139,6 +144,28 @@ export default function VideoLibrary() {
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col max-w-full">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 md:px-6 py-4">
           <h2 className="text-sm font-bold text-slate-700">Video Collection ({videos.length})</h2>
+          {videos.length > 0 && (
+            <button
+              onClick={async () => {
+                if (window.confirm("Are you sure you want to delete ALL videos? This action cannot be undone.")) {
+                  setIsLoading(true);
+                  try {
+                    await Promise.all(videos.map(v => deleteDoc(doc(db, 'videos', v.id))));
+                    toast.success("All videos deleted successfully");
+                  } catch (error) {
+                    console.error("Error deleting all videos:", error);
+                    toast.error("Failed to delete all videos");
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }
+              }}
+              className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete All
+            </button>
+          )}
           <span className="text-[10px] text-slate-400 hidden sm:inline">Collection: /videos</span>
         </div>
 
@@ -410,7 +437,7 @@ export default function VideoLibrary() {
                 {editingVideo.requiresUnlock && (
                   <div className="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-indigo-50 border border-indigo-100 p-5 mt-1 shadow-inner">
                     <div className="col-span-1 sm:col-span-2">
-                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-indigo-700">Target Link (Secret Destination) *</label>
+                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-indigo-700">Unlock Link *</label>
                       <input
                         type="url"
                         required={editingVideo.requiresUnlock}

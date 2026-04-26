@@ -195,7 +195,7 @@ export default function AddVideo() {
           {requiresUnlock && (
             <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg bg-indigo-50/50 p-4 border border-indigo-100">
               <div className="col-span-1 sm:col-span-2">
-                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-indigo-700">Target Link (Secret Destination) *</label>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-indigo-700">Unlock Link *</label>
                 <input
                   type="url"
                   required={requiresUnlock}
